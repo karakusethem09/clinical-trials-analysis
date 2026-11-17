@@ -1,49 +1,79 @@
--- Point-in-time sponsor track record: for each trial, what was known about its
--- lead sponsor on the day the trial started. Only trials that had already
--- ended before that day count towards the stop rate.
+-- Sponsor track record as it could have been known when each trial was registered.
+--
+-- Anchor date : the earlier of the trial's start date and its first submission.
+-- History     : every interventional study of the same (normalised) lead sponsor,
+--               including studies started before 2008.
+-- Registered  : studies first submitted before the anchor date (public by then).
+-- Ended       : studies that are now COMPLETED, TERMINATED or WITHDRAWN and whose end
+--               date is at least 12 months before the anchor date (and that were
+--               registered before it). The 12-month lag is a proxy for "the outcome had
+--               been posted": the registry only shows the current record, not when its
+--               status changed.
 with c as (
-    select * from {{ ref('trial_cohort') }}
+    select nct_id, lead_sponsor_key, least(start_date, first_submit_date) as anchor_date
+    from {{ ref('trial_cohort') }}
 ),
 
-ended_by_day as (
+hist as (
     select
-        lead_sponsor_name,
-        end_date,
-        count(*)            as n_ended,
-        sum(stopped_early)  as n_stopped
-    from c
-    where is_resolved and end_date is not null and lead_sponsor_name is not null
+        lead_sponsor_key,
+        first_submit_date,
+        overall_status,
+        coalesce(completion_date, primary_completion_date) as end_date
+    from {{ ref('stg_studies') }}
+    where study_type = 'INTERVENTIONAL' and lead_sponsor_key is not null
+),
+
+registered as (
+    select
+        lead_sponsor_key,
+        first_submit_date,
+        sum(count(*)) over (partition by lead_sponsor_key order by first_submit_date) as cum_registered
+    from hist
+    where first_submit_date is not null
     group by 1, 2
 ),
 
-running as (
+ended as (
     select
-        lead_sponsor_name,
-        end_date,
-        sum(n_ended)   over w as cum_ended,
-        sum(n_stopped) over w as cum_stopped
-    from ended_by_day
-    window w as (partition by lead_sponsor_name order by end_date)
+        lead_sponsor_key,
+        greatest(end_date + interval 12 month, first_submit_date)               as visible_from,
+        count(*)                                                                 as n_ended,
+        count_if(overall_status = 'COMPLETED')                                   as n_completed,
+        count_if(overall_status = 'TERMINATED')                                  as n_terminated,
+        count_if(overall_status = 'WITHDRAWN')                                   as n_withdrawn
+    from hist
+    where overall_status in ('COMPLETED', 'TERMINATED', 'WITHDRAWN')
+      and end_date is not null and first_submit_date is not null
+    group by 1, 2
 ),
 
-started_before as (
+ended_running as (
     select
-        nct_id,
-        count(*) over (
-            partition by lead_sponsor_name order by start_date
-            range between unbounded preceding and interval 1 day preceding
-        ) as sponsor_prior_started
-    from c
+        lead_sponsor_key,
+        visible_from,
+        sum(n_ended)      over w as cum_ended,
+        sum(n_completed)  over w as cum_completed,
+        sum(n_terminated) over w as cum_terminated,
+        sum(n_withdrawn)  over w as cum_withdrawn
+    from ended
+    window w as (partition by lead_sponsor_key order by visible_from)
 )
 
 select
     c.nct_id,
-    sb.sponsor_prior_started,
-    coalesce(r.cum_ended, 0)                           as sponsor_prior_ended,
-    coalesce(r.cum_stopped, 0)                         as sponsor_prior_stopped,
-    r.cum_stopped / nullif(r.cum_ended, 0)             as sponsor_prior_stop_rate
+    c.lead_sponsor_key,
+    c.anchor_date                                                         as sponsor_anchor_date,
+    coalesce(r.cum_registered, 0)::bigint                                         as sponsor_prior_registered,
+    coalesce(e.cum_ended, 0)::bigint                                              as sponsor_prior_ended,
+    coalesce(e.cum_terminated, 0)::bigint                                         as sponsor_prior_terminated,
+    coalesce(e.cum_withdrawn, 0)::bigint                                          as sponsor_prior_withdrawn,
+    e.cum_terminated / nullif(e.cum_completed + e.cum_terminated, 0)      as sponsor_prior_terminated_rate,
+    e.cum_withdrawn / nullif(e.cum_ended, 0)                              as sponsor_prior_withdrawn_rate
 from c
-join started_before sb using (nct_id)
-asof left join running r
-    on c.lead_sponsor_name = r.lead_sponsor_name
-   and c.start_date > r.end_date
+asof left join registered r
+    on c.lead_sponsor_key = r.lead_sponsor_key
+   and c.anchor_date > r.first_submit_date
+asof left join ended_running e
+    on c.lead_sponsor_key = e.lead_sponsor_key
+   and c.anchor_date > e.visible_from

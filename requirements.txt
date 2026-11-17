@@ -1,0 +1,14 @@
+# Dashboard run-time requirements (Streamlit Community Cloud installs this file).
+# scikit-learn and lightgbm must match the versions that saved models/final_model.joblib.
+# Wheels exist for Python 3.12 and 3.13 on manylinux x86_64.
+streamlit==1.67.0
+altair==6.3.0
+pandas==2.3.3
+numpy==2.5.5
+pyarrow==26.0.1
+scikit-learn==1.9.1
+scipy==1.18.1
+lightgbm==4.7.0
+joblib==1.6.0
+# Rebuilding the database, models and app/data/ locally also needs duckdb, dbt-duckdb,
+# lifelines, shap and matplotlib (see the .venv); tests need requirements-dev.txt.

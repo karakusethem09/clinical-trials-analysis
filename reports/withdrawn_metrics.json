@@ -1,0 +1,100 @@
+{
+  "label": "withdrawn before starting, among prospectively registered trials",
+  "n": {
+    "train": 64707,
+    "valid": 27655,
+    "test": 47883
+  },
+  "base_rate_by_registration_year": {
+    "2008": 0.0457,
+    "2009": 0.047,
+    "2010": 0.0449,
+    "2011": 0.0481,
+    "2012": 0.0478,
+    "2013": 0.0504,
+    "2014": 0.0487,
+    "2015": 0.052,
+    "2016": 0.0522,
+    "2017": 0.0564,
+    "2018": 0.0508,
+    "2019": 0.0619,
+    "2020": 0.0639
+  },
+  "test": {
+    "roc_auc": 0.6501,
+    "pr_auc": 0.1118,
+    "brier": 0.0545,
+    "top_decile_precision": 0.1383,
+    "top_decile_lift": 2.34,
+    "base_rate": 0.0591,
+    "n": 47883
+  },
+  "test_bootstrap": {
+    "roc_auc": {
+      "estimate": 0.6501,
+      "ci95": [
+        0.6394,
+        0.6603
+      ]
+    },
+    "pr_auc": {
+      "estimate": 0.1118,
+      "ci95": [
+        0.1044,
+        0.1201
+      ]
+    },
+    "top_decile_precision": {
+      "estimate": 0.1383,
+      "ci95": [
+        0.128,
+        0.1489
+      ]
+    },
+    "top_decile_lift": 2.341
+  },
+  "top_features_by_gain": {
+    "sponsor_prior_withdrawn_rate": 0.143,
+    "sponsor_prior_terminated_rate": 0.1081,
+    "criteria_chars": 0.1059,
+    "sponsor_prior_registered": 0.0996,
+    "max_age_years": 0.0814,
+    "criteria_bullets": 0.075,
+    "sponsor_prior_ended": 0.0703,
+    "min_age_years": 0.0469,
+    "has_collaborator": 0.0301,
+    "phase": 0.0277
+  },
+  "test_by_sponsor_class": {
+    "FED": {
+      "n": 493,
+      "withdrawn_rate": 0.0467,
+      "mean_predicted": 0.0601
+    },
+    "INDUSTRY": {
+      "n": 12070,
+      "withdrawn_rate": 0.0457,
+      "mean_predicted": 0.035
+    },
+    "NETWORK": {
+      "n": 318,
+      "withdrawn_rate": 0.0912,
+      "mean_predicted": 0.0416
+    },
+    "NIH": {
+      "n": 484,
+      "withdrawn_rate": 0.0661,
+      "mean_predicted": 0.0363
+    },
+    "OTHER": {
+      "n": 33535,
+      "withdrawn_rate": 0.0644,
+      "mean_predicted": 0.0599
+    },
+    "OTHER_GOV": {
+      "n": 962,
+      "withdrawn_rate": 0.0353,
+      "mean_predicted": 0.04
+    }
+  }
+}

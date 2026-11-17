@@ -1,0 +1,32 @@
+{
+  "numeric_median": {
+    "n_conditions": 1.0,
+    "n_intervention_types": 1.0,
+    "min_age_years": 18.0,
+    "max_age_years": 65.0,
+    "criteria_chars": 1174.0,
+    "criteria_bullets": 13.0,
+    "sponsor_prior_registered": 111.0,
+    "sponsor_prior_ended": 58.0,
+    "sponsor_prior_terminated_rate": 0.09100758396533044,
+    "sponsor_prior_withdrawn_rate": 0.021
+  },
+  "sponsor_typical": {
+    "sponsor_prior_registered": 177.0,
+    "sponsor_prior_ended": 99.0,
+    "sponsor_prior_terminated_rate": 0.09100758396533044,
+    "sponsor_prior_withdrawn_rate": 0.021
+  },
+  "share_without_history": 0.1508559201141227,
+  "calibration_summary": {
+    "Raw score": {
+      "ece": 0.0134,
+      "mean_predicted": 0.1087
+    },
+    "Isotonic (fitted on 2017)": {
+      "ece": 0.0107,
+      "mean_predicted": 0.1111
+    },
+    "observed_rate": 0.1214
+  }
+}

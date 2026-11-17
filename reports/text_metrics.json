@@ -1,74 +1,196 @@
 {
-  "text_only": {
-    "roc_auc": 0.6732,
-    "pr_auc": 0.3265,
-    "brier": 0.1557,
-    "base_rate": 0.2044
+  "masking": {
+    "cohort": "primary cohort, start years 2008-2020",
+    "n_trials": 121265,
+    "current_rule_title_or_summary": {
+      "terminated_5y": 0.0056,
+      "not_terminated": 0.0011
+    },
+    "current_rule_if_applied_to_criteria": {
+      "terminated_5y": 0.0033,
+      "not_terminated": 0.003
+    },
+    "earlier_broad_rule_all_text": {
+      "terminated_5y": 0.2196,
+      "not_terminated": 0.1752
+    }
   },
-  "tabular_only": {
-    "roc_auc": 0.7212,
-    "pr_auc": 0.4001,
-    "brier": 0.1463,
-    "base_rate": 0.2044
+  "grouped_by_sponsor": {
+    "selection_year_2017": {
+      "text_only": {
+        "roc_auc": 0.6404,
+        "pr_auc": 0.1684,
+        "brier": 0.0984,
+        "top_decile_precision": 0.1958,
+        "top_decile_lift": 1.738,
+        "base_rate": 0.1126,
+        "n": 11391
+      },
+      "tabular_only": {
+        "roc_auc": 0.6622,
+        "pr_auc": 0.1762,
+        "brier": 0.0971,
+        "top_decile_precision": 0.2019,
+        "top_decile_lift": 1.793,
+        "base_rate": 0.1126,
+        "n": 11391
+      },
+      "tabular_plus_text": {
+        "roc_auc": 0.6647,
+        "pr_auc": 0.1825,
+        "brier": 0.0968,
+        "top_decile_precision": 0.2107,
+        "top_decile_lift": 1.871,
+        "base_rate": 0.1126,
+        "n": 11391
+      },
+      "roc_auc_gain": 0.0025
+    },
+    "test_2018_2020": {
+      "text_only": {
+        "roc_auc": 0.6406,
+        "pr_auc": 0.1808,
+        "brier": 0.105,
+        "top_decile_precision": 0.2121,
+        "top_decile_lift": 1.747,
+        "base_rate": 0.1214,
+        "n": 36452
+      },
+      "tabular_only": {
+        "roc_auc": 0.6553,
+        "pr_auc": 0.1884,
+        "brier": 0.1037,
+        "top_decile_precision": 0.2154,
+        "top_decile_lift": 1.774,
+        "base_rate": 0.1214,
+        "n": 36452
+      },
+      "tabular_plus_text": {
+        "roc_auc": 0.6665,
+        "pr_auc": 0.1982,
+        "brier": 0.1031,
+        "top_decile_precision": 0.2326,
+        "top_decile_lift": 1.916,
+        "base_rate": 0.1214,
+        "n": 36452
+      },
+      "roc_auc_gain": 0.0112
+    }
   },
-  "tabular_plus_text": {
-    "roc_auc": 0.7246,
-    "pr_auc": 0.402,
-    "brier": 0.1462,
-    "base_rate": 0.2044
+  "ungrouped": {
+    "selection_year_2017": {
+      "text_only": {
+        "roc_auc": 0.6404,
+        "pr_auc": 0.1684,
+        "brier": 0.0984,
+        "top_decile_precision": 0.1958,
+        "top_decile_lift": 1.738,
+        "base_rate": 0.1126,
+        "n": 11391
+      },
+      "tabular_only": {
+        "roc_auc": 0.6622,
+        "pr_auc": 0.1762,
+        "brier": 0.0971,
+        "top_decile_precision": 0.2019,
+        "top_decile_lift": 1.793,
+        "base_rate": 0.1126,
+        "n": 11391
+      },
+      "tabular_plus_text": {
+        "roc_auc": 0.6678,
+        "pr_auc": 0.1827,
+        "brier": 0.0971,
+        "top_decile_precision": 0.2195,
+        "top_decile_lift": 1.949,
+        "base_rate": 0.1126,
+        "n": 11391
+      },
+      "roc_auc_gain": 0.0056
+    },
+    "test_2018_2020": {
+      "text_only": {
+        "roc_auc": 0.6406,
+        "pr_auc": 0.1808,
+        "brier": 0.105,
+        "top_decile_precision": 0.2121,
+        "top_decile_lift": 1.747,
+        "base_rate": 0.1214,
+        "n": 36452
+      },
+      "tabular_only": {
+        "roc_auc": 0.6553,
+        "pr_auc": 0.1884,
+        "brier": 0.1037,
+        "top_decile_precision": 0.2154,
+        "top_decile_lift": 1.774,
+        "base_rate": 0.1214,
+        "n": 36452
+      },
+      "tabular_plus_text": {
+        "roc_auc": 0.6638,
+        "pr_auc": 0.195,
+        "brier": 0.1036,
+        "top_decile_precision": 0.2329,
+        "top_decile_lift": 1.918,
+        "base_rate": 0.1214,
+        "n": 36452
+      },
+      "roc_auc_gain": 0.0085
+    }
   },
   "terms_raising_risk": [
     "patients",
-    "burn",
-    "will",
-    "subjects will",
-    "initial",
-    "determine if",
-    "implantation",
-    "have",
-    "therapy",
-    "pd 0332334",
-    "0332334",
-    "pulmonary hypertension",
-    "patient",
-    "sitaxsentan",
-    "decrease the",
-    "the medical",
-    "of enrollment",
-    "of pf",
+    "or other",
+    "tanezumab",
+    "pf",
     "mk",
-    "demonstrated",
+    "contraindication",
+    "prior",
     "dl",
-    "of bms",
-    "determine",
-    "and 12",
-    "inability"
+    "level",
+    "term safety",
+    "determine if",
+    "0332334",
+    "pd 0332334",
+    "of enrollment",
+    "in acute",
+    "subjects will",
+    "metastatic melanoma",
+    "of pf",
+    "antipsychotic",
+    "chemotherapy",
+    "narcotic",
+    "of mk",
+    "dutogliptin",
+    "etoposide",
+    "the effects"
   ],
   "terms_lowering_risk": [
     "healthy",
-    "chinese",
-    "training",
-    "intervention",
-    "capsules",
-    "to day",
     "vaccine",
-    "during",
-    "previous treatment",
-    "could",
-    "health",
-    "for patients",
-    "cognitive",
-    "in japanese",
-    "danish",
+    "program",
+    "intervention",
     "the pharmacokinetics",
-    "about",
-    "daily",
-    "programme",
+    "single dose",
     "pharmacokinetics",
-    "tablet",
+    "affect",
+    "pharmacokinetic",
+    "included",
     "japanese",
-    "safety of",
-    "or recurrent",
-    "combination chemotherapy"
+    "control group",
+    "illness",
+    "chinese",
+    "test and",
+    "measured",
+    "expansion",
+    "tablet",
+    "phase study",
+    "gel",
+    "in japanese",
+    "behavioral",
+    "community",
+    "vaccination",
+    "study period"
   ]
 }

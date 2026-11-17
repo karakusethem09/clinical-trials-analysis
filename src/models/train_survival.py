@@ -1,11 +1,13 @@
 """Time to termination, using the recent trials the classifier has to drop.
 
-The classifier can only learn from trials whose outcome is known, so it stops at
-2019 starts. A survival model can also learn from trials that are still running:
-they count as "not terminated so far" up to the day of the data pull.
+The classifier needs five years of follow-up, so it stops at 2020 starts. A survival
+model can also learn from trials that are still running: they count as "not
+terminated so far" up to the day of the data pull.
 
-Population : prospectively registered interventional trials started 2008 onward
-             that actually began enrolling (see WITHDRAWN below).
+Population : interventional trials started 2008 onward that actually began enrolling
+             (not withdrawn, not waiting to recruit, start date not ESTIMATED), first
+             registered no later than 21 days after their start: the same cohort rule
+             as the classifier, without the five-year follow-up requirement.
 Clock      : years from start_date.
 Outcomes   : TERMINATED   -> event of interest at end_date (the date the trial stopped).
              COMPLETED    -> competing event at end_date. A completed trial can no
@@ -20,19 +22,22 @@ Outcomes   : TERMINATED   -> event of interest at end_date (the date the trial s
              RECRUITING, ACTIVE_NOT_RECRUITING, ENROLLING_BY_INVITATION, SUSPENDED
                           -> censored at the pull date (max last_update_date).
                              Suspension is a pause, not a stop.
-             UNKNOWN      -> censored at last_update_date, the last day the sponsor
+             UNKNOWN      -> censored at status_verified_date, the last day the sponsor
                              confirmed the trial was still going. Some of these have
                              quietly stopped, so this censoring is probably
                              informative and termination risk is slightly understated.
              WITHDRAWN and NOT_YET_RECRUITING -> excluded. They never enrolled
                              anyone, their start_date is only the planned date, and
                              a "time to stopping" of ~0 says nothing about how long
-                             running trials last. Withdrawal is covered by the
-                             classifier.
+                             running trials last. Withdrawal has its own analysis
+                             (train_withdrawn.py).
 Model      : penalised Cox proportional hazards on registration-time features.
              Hazard ratios come from a fit on every start year; the concordance
              index comes from a temporal hold-out (fit on starts <= 2017,
-             evaluate on 2018-2019 starts), with the penalty chosen on 2016-2017.
+             evaluate on 2018-2020 starts), with the penalty chosen by fitting on
+             starts <= 2014 and scoring 2015-2016. The hold-out model's risk score is
+             also scored as a classifier of the primary label (terminated within 5
+             years) on the classifier's test trials, for a like-for-like comparison.
 """
 from __future__ import annotations
 
@@ -49,6 +54,7 @@ import pandas as pd
 from lifelines import AalenJohansenFitter, CoxPHFitter, KaplanMeierFitter
 from lifelines.statistics import proportional_hazard_test
 from lifelines.utils import concordance_index
+from sklearn.metrics import roc_auc_score
 
 ROOT = Path(__file__).resolve().parents[2]
 FIG = ROOT / "reports" / "figures"
@@ -70,15 +76,14 @@ FLAGS = ["healthy_volunteers", "has_industry_collaborator", "has_nih_collaborato
 
 def load() -> tuple[pd.DataFrame, pd.Timestamp]:
     con = duckdb.connect(str(ROOT / "data" / "trials.duckdb"), read_only=True)
-    pull = pd.Timestamp(con.sql("select max(last_update_date) from trial_cohort").fetchall()[0][0])
+    pull = pd.Timestamp(con.sql("select max(pull_date) from trial_cohort").fetchall()[0][0])
     df = con.sql("""
-        select c.*, s.sponsor_prior_started, s.sponsor_prior_stop_rate
+        select c.*, s.sponsor_prior_registered, s.sponsor_prior_terminated_rate
         from trial_cohort c join sponsor_history s using (nct_id)
-        where registered_prospectively
-          and overall_status not in ('WITHDRAWN', 'NOT_YET_RECRUITING')
+        where started and registered_by_start
         order by nct_id
     """).df()
-    for c in ("start_date", "end_date", "last_update_date"):
+    for c in ("start_date", "end_date", "last_update_date", "status_verified_date"):
         df[c] = pd.to_datetime(df[c])
     df = df[df.start_date <= pull]
 
@@ -86,7 +91,7 @@ def load() -> tuple[pd.DataFrame, pd.Timestamp]:
     stop = pd.Series(pd.NaT, index=df.index, dtype="datetime64[ns]")
     stop[status.isin(["TERMINATED", "COMPLETED"])] = df.end_date
     stop[status.isin(ONGOING)] = pull
-    stop[status == "UNKNOWN"] = df.last_update_date
+    stop[status == "UNKNOWN"] = df.status_verified_date.fillna(df.last_update_date)
     df["event"] = np.select([status == "TERMINATED", status == "COMPLETED"],
                             [TERMINATED, COMPLETED], CENSORED)
     df["years"] = (stop.clip(upper=pull) - df.start_date).dt.days / 365.25
@@ -111,13 +116,12 @@ def features(df: pd.DataFrame) -> pd.DataFrame:
                    for c, ref in CATEGORICAL.items()], axis=1)
     for f in FLAGS:
         X[f] = df[f].fillna(False).astype(float)
-    X["log_sponsor_prior_trials"] = np.log1p(df.sponsor_prior_started)
-    X["sponsor_prior_stop_rate_missing"] = df.sponsor_prior_stop_rate.isna().astype(float)
+    X["log_sponsor_prior_trials"] = np.log1p(df.sponsor_prior_registered.astype(float))
+    X["sponsor_prior_terminated_rate_missing"] = df.sponsor_prior_terminated_rate.isna().astype(float)
     # an unknown track record is set to the typical rate; the indicator carries the difference
-    X["sponsor_prior_stop_rate"] = df.sponsor_prior_stop_rate.fillna(0.15)
+    X["sponsor_prior_terminated_rate"] = df.sponsor_prior_terminated_rate.fillna(0.09)
     X["log_criteria_chars"] = np.log1p(df.criteria_chars.fillna(0))
     X["n_conditions"] = df.n_conditions.clip(upper=10)
-    X["registered_months_before_start"] = (-df.days_registered_after_start).clip(-1, 24) / 30.44
     return X.loc[:, X.std() > 0]
 
 
@@ -168,7 +172,7 @@ def main() -> None:
         "pull_date": str(pull.date()),
         "n": int(len(df)),
         "n_by_outcome": {k: int(v) for k, v in df.overall_status.value_counts().items()},
-        "n_started_2020_or_later": int((df.start_year >= 2020).sum()),
+        "n_started_2021_or_later": int((df.start_year >= 2021).sum()),
     }
 
     # How much does ignoring the competing risk overstate termination?
@@ -192,23 +196,28 @@ def main() -> None:
     X = features(df)
 
     # Penalty chosen on a temporal split inside the training years.
-    fit_part, tune_part = df.start_year <= 2015, df.start_year.between(2016, 2017)
+    fit_part, tune_part = df.start_year <= 2014, df.start_year.between(2015, 2016)
     tuning = {}
     for pen in (0.001, 0.01, 0.1):
         m = fit_cox(X[fit_part], df[fit_part], pen)
         tuning[pen] = round(c_index(m, X[tune_part], df[tune_part]), 4)
     penalizer = max(tuning, key=tuning.get)
-    results["penalizer_tuning_c_index_2016_2017"] = {str(k): v for k, v in tuning.items()}
+    results["penalizer_tuning_c_index_2015_2016"] = {str(k): v for k, v in tuning.items()}
     results["penalizer"] = penalizer
 
-    train, test = df.start_year <= 2017, df.start_year.between(2018, 2019)
+    train, test = df.start_year <= 2017, df.start_year.between(2018, 2020)
     holdout = fit_cox(X[train], df[train], penalizer)
     results["c_index"] = {
         "train_2008_2017": round(c_index(holdout, X[train], df[train]), 4),
-        "test_2018_2019": round(c_index(holdout, X[test], df[test]), 4),
+        "test_2018_2020": round(c_index(holdout, X[test], df[test]), 4),
     }
     results["n_holdout"] = {"train": int(train.sum()), "test": int(test.sum()),
                             "test_terminated": int((df[test].event == TERMINATED).sum())}
+    labelled = test & df.terminated_5y.notna()
+    risk = holdout.predict_partial_hazard(X[labelled])
+    results["holdout_risk_as_classifier_of_terminated_5y"] = {
+        "roc_auc": round(roc_auc_score(df.terminated_5y[labelled], risk), 4),
+        "n": int(labelled.sum())}
 
     full = fit_cox(X, df, penalizer)
     hr = full.summary[["coef", "exp(coef)", "exp(coef) lower 95%", "exp(coef) upper 95%", "p"]]

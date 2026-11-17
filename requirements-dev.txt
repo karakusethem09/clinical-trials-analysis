@@ -1,0 +1,5 @@
+# Tests and CI (no database needed): the app's runtime requirements plus test tools.
+-r requirements.txt
+duckdb==2.0.0
+jinja2==3.1.6
+pytest==9.2.0

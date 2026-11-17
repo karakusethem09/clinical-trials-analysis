@@ -1,0 +1,9 @@
+# Restrained theme: the accent is slot 1 (blue) of the dashboard's chart palette
+# (app/lib/style.py) instead of Streamlit's default red; everything else follows the
+# viewer's light or dark setting.
+[theme]
+primaryColor = "#2a78d6"
+font = "sans serif"
+
+[browser]
+gatherUsageStats = false

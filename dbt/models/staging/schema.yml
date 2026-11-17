@@ -15,3 +15,51 @@ models:
                          NO_LONGER_AVAILABLE, APPROVED_FOR_MARKETING, TEMPORARILY_NOT_AVAILABLE]
       - name: study_type
         description: Missing for a small number of old expanded-access style records.
+      - name: start_date_type
+        description: ACTUAL or ESTIMATED; missing on many older records.
+        tests:
+          - accepted_values:
+              arguments:
+                values: [ACTUAL, ESTIMATED]
+      - name: primary_completion_date_type
+        description: ACTUAL or ESTIMATED; missing on many older records.
+        tests:
+          - accepted_values:
+              arguments:
+                values: [ACTUAL, ESTIMATED]
+      - name: completion_date_type
+        description: ACTUAL or ESTIMATED; missing on many older records.
+        tests:
+          - accepted_values:
+              arguments:
+                values: [ACTUAL, ESTIMATED]
+      - name: start_date_precision
+        description: DAY for a full date, MONTH when only year and month were given (date set to day 1).
+        tests:
+          - accepted_values:
+              arguments:
+                values: [DAY, MONTH]
+      - name: primary_completion_date_precision
+        description: DAY for a full date, MONTH when only year and month were given (date set to day 1).
+        tests:
+          - accepted_values:
+              arguments:
+                values: [DAY, MONTH]
+      - name: completion_date_precision
+        description: DAY for a full date, MONTH when only year and month were given (date set to day 1).
+        tests:
+          - accepted_values:
+              arguments:
+                values: [DAY, MONTH]
+      - name: status_verified_date_precision
+        description: DAY for a full date, MONTH when only year and month were given (date set to day 1).
+        tests:
+          - accepted_values:
+              arguments:
+                values: [DAY, MONTH]
+      - name: first_submit_date
+        tests: [not_null]
+      - name: last_update_date
+        tests: [not_null]
+      - name: lead_sponsor_key
+        description: Normalised lead sponsor name (see macros/normalise_sponsor.sql).

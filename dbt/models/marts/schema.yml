@@ -7,14 +7,54 @@ models:
         tests: [unique, not_null]
       - name: start_date
         tests: [not_null]
-      - name: stopped_early
-        description: 1 = terminated or withdrawn, 0 = completed, null = not resolved yet.
+      - name: started
+        description: Began enrolling (not withdrawn or not-yet-recruiting, start date not ESTIMATED).
+        tests: [not_null]
+      - name: terminated_5y
+        description: >
+          Primary label. 1 = terminated within 5 years of start, 0 = known not terminated by
+          year 5, null = outside the primary cohort.
         tests:
           - accepted_values:
               arguments:
                 values: [0, 1]
+      - name: terminated_5y_unknown_as_0
+        tests:
+          - accepted_values:
+              arguments:
+                values: [0, 1]
+      - name: terminated_5y_unknown_verified
+        tests:
+          - accepted_values:
+              arguments:
+                values: [0, 1]
+      - name: stopped_early
+        description: Legacy label. 1 = terminated or withdrawn, 0 = completed, null = not resolved yet.
+        tests:
+          - accepted_values:
+              arguments:
+                values: [0, 1]
+      - name: start_date_precision
+        tests:
+          - accepted_values:
+              arguments:
+                values: [DAY, MONTH]
+      - name: registered_by_start
+        description: First submitted no later than 21 days after the last possible start day.
   - name: sponsor_history
-    description: Sponsor track record as of each trial's start date (no look-ahead).
+    description: >
+      Sponsor track record as of each trial's registration (earlier of start and first
+      submission), using all interventional studies of the normalised sponsor, counting
+      ended studies only 12 months after their end date.
+    columns:
+      - name: nct_id
+        tests: [unique, not_null, relationships: {arguments: {to: ref('trial_cohort'), field: nct_id}}]
+      - name: sponsor_prior_registered
+        tests: [not_null]
+      - name: sponsor_prior_ended
+        tests: [not_null]
+  - name: sponsor_history_v1
+    description: Legacy sponsor track record (no lag, 2008+ only, raw names), used only for the leakage ladder.
     columns:
       - name: nct_id
         tests: [unique, not_null]

@@ -2,21 +2,48 @@
 -- (registration became mandatory under FDAAA in late 2007).
 --
 -- Columns are split into three groups:
---   * outcome columns
+--   * outcome columns, including the primary label terminated_5y (DECISIONS.md #18-#21)
 --   * features considered known when the trial was registered
 --   * columns prefixed leaky_: values the registry overwrites after the trial ends.
 --     They are kept only to measure how much they inflate a naive model.
-with s as (
-    select * from {{ ref('stg_studies') }}
+with pull as (
+    -- the data pull date: the latest update anyone submitted
+    select max(last_update_date) as pull_date from {{ ref('stg_studies') }}
+),
+
+s as (
+    select
+        *,
+        coalesce(completion_date, primary_completion_date)                   as end_date,
+        -- a month-only start date could be any day of that month: use its last day
+        -- when checking registration timing, so the day-1 default never penalises a trial
+        case when start_date_precision = 'MONTH' then last_day(start_date) else start_date end
+                                                                             as start_date_latest,
+        -- began enrolling: not withdrawn, not still waiting, and no planned-only start date
+        overall_status not in ('WITHDRAWN', 'NOT_YET_RECRUITING')
+            and coalesce(start_date_type, 'ACTUAL') = 'ACTUAL'               as started
+    from {{ ref('stg_studies') }}, pull
     where study_type = 'INTERVENTIONAL'
       and start_date >= date '2008-01-01'
-      and start_date <= current_date
+      and start_date <= pull_date
 )
 
 select
     nct_id,
 
-    -- outcome
+    -- primary outcome: terminated within 5 years of starting, among trials that started
+    -- (definition in macros/terminated_within.sql)
+    pull_date,
+    started,
+    start_date + interval 5 year <= pull_date                                as has_5y_follow_up,
+    {{ terminated_within(5) }}                                                as terminated_5y,
+    -- sensitivity versions for UNKNOWN status (last verified status was "ongoing")
+    {{ terminated_within(5, unknown='as_zero') }}                             as terminated_5y_unknown_as_0,
+    {{ terminated_within(5, unknown='verified') }}                            as terminated_5y_unknown_verified,
+    -- registered no later than 21 days after the (latest possible) start date
+    date_diff('day', start_date_latest, first_submit_date) <= 21             as registered_by_start,
+
+    -- status, and the legacy outcome (DECISIONS.md #3, superseded by #18)
     overall_status,
     overall_status in ('COMPLETED', 'TERMINATED', 'WITHDRAWN')  as is_resolved,
     case
@@ -25,7 +52,13 @@ select
     end                                                         as stopped_early,
     why_stopped,
     start_date,
-    coalesce(completion_date, primary_completion_date)          as end_date,
+    start_date_type,
+    start_date_precision,
+    end_date,
+    completion_date_type,
+    first_submit_date,
+    first_post_date,
+    status_verified_date,
     last_update_date,
 
     -- registration-time features: design
@@ -35,13 +68,15 @@ select
     coalesce(masking, 'MISSING')                                as masking,
     coalesce(primary_purpose, 'MISSING')                        as primary_purpose,
     coalesce(intervention_model, 'MISSING')                     as intervention_model,
+    -- legacy (DECISIONS.md #9, superseded by #22): the start date is the actual date for
+    -- trials that started but a planned one for withdrawn trials, so these two columns
+    -- are linked to the outcome. Not used by the current models.
     date_diff('day', start_date, first_submit_date)             as days_registered_after_start,
-    -- FDAAA allows registration up to 21 days after the first participant is enrolled.
-    -- Trials registered later may already have finished when they were registered.
     date_diff('day', start_date, first_submit_date) <= 21       as registered_prospectively,
 
     -- registration-time features: sponsor
     lead_sponsor_name,
+    lead_sponsor_key,
     coalesce(lead_sponsor_class, 'MISSING')                     as lead_sponsor_class,
     len(collaborator_classes) > 0                               as has_collaborator,
     list_contains(collaborator_classes, 'INDUSTRY')             as has_industry_collaborator,
@@ -72,5 +107,6 @@ select
     enrollment_count                                            as leaky_enrollment_count,
     enrollment_type                                             as leaky_enrollment_type,
     n_locations                                                 as leaky_n_locations,
-    len(location_countries)                                     as leaky_n_countries
+    len(location_countries)                                     as leaky_n_countries,
+    results_first_submit_date                                   as leaky_results_first_submit_date
 from s

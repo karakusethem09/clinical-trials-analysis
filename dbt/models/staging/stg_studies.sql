@@ -1,5 +1,7 @@
 -- One row per registered study, flattened from the raw API JSON.
--- Partial dates such as "2007-08" are set to the first of the month.
+-- Partial dates such as "2007-08" are set to the first of the month; *_date_precision
+-- records whether the registry gave a day or only a month.
+-- *_date_type is ACTUAL or ESTIMATED (missing on many older records).
 with raw as (
     select json as j
     from read_ndjson_objects('{{ var("raw_glob") }}')
@@ -18,6 +20,14 @@ parsed as (
         j ->> '$.protocolSection.statusModule.primaryCompletionDateStruct.date' as primary_completion_raw,
         j ->> '$.protocolSection.statusModule.completionDateStruct.date'    as completion_raw,
         j ->> '$.protocolSection.statusModule.lastUpdateSubmitDate'         as last_update_raw,
+        j ->> '$.protocolSection.statusModule.startDateStruct.type'         as start_date_type,
+        j ->> '$.protocolSection.statusModule.primaryCompletionDateStruct.type' as primary_completion_date_type,
+        j ->> '$.protocolSection.statusModule.completionDateStruct.type'    as completion_date_type,
+        j ->> '$.protocolSection.statusModule.studyFirstSubmitQcDate'       as first_submit_qc_raw,
+        j ->> '$.protocolSection.statusModule.studyFirstPostDateStruct.date' as first_post_raw,
+        j ->> '$.protocolSection.statusModule.lastUpdatePostDateStruct.date' as last_update_post_raw,
+        j ->> '$.protocolSection.statusModule.statusVerifiedDate'           as status_verified_raw,
+        j ->> '$.protocolSection.statusModule.resultsFirstSubmitDate'       as results_first_submit_raw,
         j ->> '$.protocolSection.designModule.studyType'                    as study_type,
         from_json(j -> '$.protocolSection.designModule.phases', '["VARCHAR"]') as phases,
         try_cast(j ->> '$.protocolSection.designModule.enrollmentInfo.count' as bigint) as enrollment_count,
@@ -48,10 +58,18 @@ select
     overall_status,
     why_stopped,
     try_cast(first_submit_raw as date) as first_submit_date,
-    {% for c in ['start', 'primary_completion', 'completion'] %}
+    {% for c in ['start', 'primary_completion', 'completion', 'status_verified'] %}
     try_cast(case when length({{ c }}_raw) = 7 then {{ c }}_raw || '-01' else {{ c }}_raw end as date) as {{ c }}_date,
+    case length({{ c }}_raw) when 10 then 'DAY' when 7 then 'MONTH' end as {{ c }}_date_precision,
     {% endfor %}
+    start_date_type,
+    primary_completion_date_type,
+    completion_date_type,
     try_cast(last_update_raw as date) as last_update_date,
+    try_cast(last_update_post_raw as date) as last_update_post_date,
+    try_cast(first_submit_qc_raw as date) as first_submit_qc_date,
+    try_cast(first_post_raw as date) as first_post_date,
+    try_cast(results_first_submit_raw as date) as results_first_submit_date,
     study_type,
     coalesce(phases, []) as phases,
     enrollment_count,
@@ -61,6 +79,7 @@ select
     primary_purpose,
     intervention_model,
     lead_sponsor_name,
+    {{ normalise_sponsor('lead_sponsor_name') }} as lead_sponsor_key,
     lead_sponsor_class,
     coalesce(list_distinct(collaborator_classes), []) as collaborator_classes,
     coalesce(conditions, []) as conditions,

@@ -1,0 +1,131 @@
+{
+  "enrollment_by_status": [
+    {
+      "overall_status": "COMPLETED",
+      "n": 80417,
+      "median_enrollment": 61.0,
+      "median_sites": 1.0,
+      "share_no_sites": 0.0287
+    },
+    {
+      "overall_status": "TERMINATED",
+      "n": 13109,
+      "median_enrollment": 19.0,
+      "median_sites": 1.0,
+      "share_no_sites": 0.0256
+    },
+    {
+      "overall_status": "WITHDRAWN",
+      "n": 5732,
+      "median_enrollment": 0.0,
+      "median_sites": 1.0,
+      "share_no_sites": 0.3423
+    }
+  ],
+  "start_date_by_status": [
+    {
+      "overall_status": "COMPLETED",
+      "n": 157056,
+      "share_estimated": 0.0,
+      "share_untyped": 0.4346,
+      "share_registered_by_start_21d": 0.567,
+      "median_days_registered_after_start": 10.0
+    },
+    {
+      "overall_status": "TERMINATED",
+      "n": 20102,
+      "share_estimated": 0.0,
+      "share_untyped": 0.4202,
+      "share_registered_by_start_21d": 0.7298,
+      "median_days_registered_after_start": -21.0
+    },
+    {
+      "overall_status": "WITHDRAWN",
+      "n": 8169,
+      "share_estimated": 0.4922,
+      "share_untyped": 0.4901,
+      "share_registered_by_start_21d": 0.8116,
+      "median_days_registered_after_start": -66.0
+    }
+  ],
+  "label_rate_by_start_year": [
+    {
+      "start_year": 2008,
+      "old_label_rate": 0.2002,
+      "primary_label_rate": 0.1363,
+      "share_still_running": 0.0079
+    },
+    {
+      "start_year": 2009,
+      "old_label_rate": 0.1924,
+      "primary_label_rate": 0.122,
+      "share_still_running": 0.0092
+    },
+    {
+      "start_year": 2010,
+      "old_label_rate": 0.1831,
+      "primary_label_rate": 0.1154,
+      "share_still_running": 0.0101
+    },
+    {
+      "start_year": 2011,
+      "old_label_rate": 0.1804,
+      "primary_label_rate": 0.1121,
+      "share_still_running": 0.011
+    },
+    {
+      "start_year": 2012,
+      "old_label_rate": 0.1759,
+      "primary_label_rate": 0.1105,
+      "share_still_running": 0.0156
+    },
+    {
+      "start_year": 2013,
+      "old_label_rate": 0.1794,
+      "primary_label_rate": 0.1109,
+      "share_still_running": 0.0169
+    },
+    {
+      "start_year": 2014,
+      "old_label_rate": 0.1797,
+      "primary_label_rate": 0.1063,
+      "share_still_running": 0.0232
+    },
+    {
+      "start_year": 2015,
+      "old_label_rate": 0.1865,
+      "primary_label_rate": 0.1094,
+      "share_still_running": 0.0293
+    },
+    {
+      "start_year": 2016,
+      "old_label_rate": 0.1926,
+      "primary_label_rate": 0.1072,
+      "share_still_running": 0.0336
+    },
+    {
+      "start_year": 2017,
+      "old_label_rate": 0.1863,
+      "primary_label_rate": 0.1126,
+      "share_still_running": 0.0542
+    },
+    {
+      "start_year": 2018,
+      "old_label_rate": 0.1953,
+      "primary_label_rate": 0.1161,
+      "share_still_running": 0.0708
+    },
+    {
+      "start_year": 2019,
+      "old_label_rate": 0.2137,
+      "primary_label_rate": 0.1239,
+      "share_still_running": 0.1013
+    },
+    {
+      "start_year": 2020,
+      "old_label_rate": 0.2216,
+      "primary_label_rate": 0.1243,
+      "share_still_running": 0.1266
+    }
+  ]
+}

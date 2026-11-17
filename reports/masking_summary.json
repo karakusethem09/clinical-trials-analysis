@@ -1,0 +1,16 @@
+{
+  "cohort": "primary cohort, start years 2008-2020",
+  "n_trials": 121265,
+  "current_rule_title_or_summary": {
+    "terminated_5y": 0.0056,
+    "not_terminated": 0.0011
+  },
+  "current_rule_if_applied_to_criteria": {
+    "terminated_5y": 0.0033,
+    "not_terminated": 0.003
+  },
+  "earlier_broad_rule_all_text": {
+    "terminated_5y": 0.2196,
+    "not_terminated": 0.1752
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "scope": "trial_cohort, status TERMINATED/WITHDRAWN/SUSPENDED with a why_stopped reason",
+  "n_reasons": 35894,
+  "n_by_status": {
+    "TERMINATED": 23413,
+    "WITHDRAWN": 11288,
+    "SUSPENDED": 1193
+  },
+  "primary_category_share": {
+    "Safety or adverse events": 0.0283,
+    "Lack of efficacy or futility": 0.0507,
+    "COVID-19": 0.06,
+    "Regulatory or ethics": 0.0216,
+    "Funding": 0.1149,
+    "Drug or device supply": 0.0166,
+    "Investigator, staff or site logistics": 0.0846,
+    "Design changed or superseded": 0.0317,
+    "Slow or low enrollment": 0.2931,
+    "Sponsor, investigator or business decision": 0.1174,
+    "Other / unclear": 0.1811
+  },
+  "other_unclear_share": 0.1811,
+  "multi_label_share": 0.1459,
+  "precedence": [
+    "Safety or adverse events",
+    "Lack of efficacy or futility",
+    "COVID-19",
+    "Regulatory or ethics",
+    "Funding",
+    "Drug or device supply",
+    "Investigator, staff or site logistics",
+    "Design changed or superseded",
+    "Slow or low enrollment",
+    "Sponsor, investigator or business decision"
+  ],
+  "accuracy": "not measured; see reports/why_stopped_label_sample.csv (human_label is empty)"
+}

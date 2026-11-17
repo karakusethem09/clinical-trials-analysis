@@ -1,10 +1,21 @@
 """Does free text add signal beyond the structured fields?
 
-A TF-IDF + logistic regression model reads the title, summary, conditions and
-eligibility criteria. Its prediction is then given to the gradient boosting
-model as one extra feature. On the training years that prediction is produced
-out-of-fold, so the boosting model never sees a text score that was fitted on
-the same trial.
+A TF-IDF + logistic regression model reads the title, conditions, summary and
+eligibility criteria. Its prediction is given to the gradient boosting model as one
+extra feature. On the training years that prediction is produced out-of-fold, with
+folds grouped by normalised lead sponsor: a sponsor's trials are never split between
+the fitting and the predicting folds, so the text model cannot score a trial by
+recognising the drug programme or house style of its own sponsor. Later years are
+scored by one text model fitted on all training years.
+
+Before the text is read, statements that the trial itself stopped are removed from
+the title and summary (text_masking.py).
+
+This script reports the text ablation on the selection year (2017) and, as a
+description, on the test years, for grouped and for ungrouped folds, plus how many
+trials lose a sentence to masking under the current and the earlier, broader rule.
+Whether the text score goes into the headline model is decided in evaluate.py on 2017
+only.
 
 The text model uses the liblinear solver: on ~55k documents x 300k n-grams it
 converges in about 15 seconds, where saga needed over a minute per fit and had
@@ -22,13 +33,13 @@ import pandas as pd
 from joblib import Parallel, delayed
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import StratifiedKFold
+from sklearn.model_selection import StratifiedGroupKFold, StratifiedKFold
 from sklearn.pipeline import Pipeline, make_pipeline
 
-from train_tabular import (HONEST, ROOT, TEST_YEARS, TRAIN_YEARS, VALID_YEARS, fit_gbm,
-                           load, part, scores)
+from text_masking import BROAD_RULE, document, split_sentences, states_stopping
+from train_tabular import DB, FEATURES, ROOT, SPLITS, fit_gbm, load, part, scores
 
-TEXT_FEATURES = HONEST + ["text_score"]
+TEXT_FEATURES = FEATURES + ["text_score"]
 
 
 def text_model() -> Pipeline:
@@ -39,17 +50,30 @@ def text_model() -> Pipeline:
     )
 
 
+def raw_text(ids: list[str] | None = None) -> pd.DataFrame:
+    """Title, conditions, summary and criteria per trial, as stored in trial_cohort."""
+    con = duckdb.connect(str(DB), read_only=True)
+    sql = """select nct_id, brief_title, array_to_string(conditions, '; ') as conditions_text,
+                    brief_summary, eligibility_criteria
+             from trial_cohort"""
+    if ids is not None:
+        con.register("ids", pd.DataFrame({"nct_id": ids}))
+        sql += " join ids using (nct_id)"
+    return con.sql(sql + " order by nct_id").df()
+
+
+def documents(raw: pd.DataFrame) -> pd.DataFrame:
+    """The masked document each trial contributes, with the sentences that were removed."""
+    built = [document(r.brief_title, r.conditions_text, r.brief_summary, r.eligibility_criteria)
+             for r in raw.itertuples()]
+    return pd.DataFrame({"nct_id": raw.nct_id, "text": [b[0] for b in built],
+                         "masked_sentences": [b[1] for b in built]})
+
+
 def load_text(df: pd.DataFrame) -> pd.DataFrame:
-    con = duckdb.connect(str(ROOT / "data" / "trials.duckdb"), read_only=True)
-    text = con.sql("""
-        select nct_id,
-               concat_ws(' \n ', brief_title, array_to_string(conditions, '; '),
-                         brief_summary, eligibility_criteria) as text
-        from trial_cohort
-    """).df()
-    df = df.merge(text, on="nct_id", how="left")
-    df["text"] = df.text.fillna("")
-    return df
+    return df.merge(documents(raw_text()), on="nct_id", how="left").assign(
+        text=lambda d: d.text.fillna(""),
+        masked_sentences=lambda d: d.masked_sentences.map(lambda x: x if isinstance(x, list) else []))
 
 
 def _fit_predict(fit_text: pd.Series, fit_y: pd.Series, pred_text: pd.Series) -> np.ndarray:
@@ -58,21 +82,30 @@ def _fit_predict(fit_text: pd.Series, fit_y: pd.Series, pred_text: pd.Series) ->
 
 @dataclass
 class TextScored:
-    df: pd.DataFrame           # cohort with a `text_score` column (out-of-fold on train years)
+    df: pd.DataFrame           # cohort with `text_score` (out-of-fold on train years)
     text_model: Pipeline       # text model fitted on all training years
 
 
-def add_text_score(df: pd.DataFrame, n_jobs: int = 3) -> TextScored:
+def sponsor_groups(df: pd.DataFrame) -> np.ndarray:
+    """Normalised lead sponsor; a trial without one is its own group."""
+    return df.lead_sponsor_key.fillna("trial:" + df.nct_id).to_numpy()
+
+
+def add_text_score(df: pd.DataFrame, grouped: bool = True, n_jobs: int = 3) -> TextScored:
     """Attach the text model's score: out-of-fold for train years, final model for later years."""
     df = load_text(df).reset_index(drop=True)
     df["text_score"] = np.nan
 
-    train_idx = df.index[df.start_year.between(*TRAIN_YEARS)]
-    later_idx = df.index[~df.start_year.between(*TRAIN_YEARS)]
-    y_train = df.loc[train_idx, "stopped_early"]
+    train_idx = df.index[df.start_year.between(*SPLITS["train"])]
+    later_idx = df.index[~df.start_year.between(*SPLITS["train"])]
+    y_train = df.loc[train_idx, "y"]
     text = df.text
 
-    folds = list(StratifiedKFold(5, shuffle=True, random_state=0).split(train_idx, y_train))
+    if grouped:
+        splitter = StratifiedGroupKFold(5, shuffle=True, random_state=0)
+        folds = list(splitter.split(train_idx, y_train, groups=sponsor_groups(df.loc[train_idx])))
+    else:
+        folds = list(StratifiedKFold(5, shuffle=True, random_state=0).split(train_idx, y_train))
     oof = Parallel(n_jobs=n_jobs)(
         delayed(_fit_predict)(text[train_idx[f]], y_train.iloc[f], text[train_idx[p]])
         for f, p in folds)
@@ -85,32 +118,72 @@ def add_text_score(df: pd.DataFrame, n_jobs: int = 3) -> TextScored:
 
 def fit_combined(df: pd.DataFrame) -> lgb.LGBMClassifier:
     """Gradient boosting on the tabular features plus the text score."""
-    train, valid = part(df, TRAIN_YEARS), part(df, VALID_YEARS)
-    return fit_gbm(train, valid, TEXT_FEATURES)
+    return fit_gbm(part(df, "train"), part(df, "valid"), TEXT_FEATURES)
+
+
+def masking_report(df: pd.DataFrame, seed: int = 0) -> tuple[dict, pd.DataFrame]:
+    """Share of cohort trials losing a sentence, by outcome and rule, plus 20 random masked sentences."""
+    raw = raw_text(df.nct_id.tolist()).merge(df[["nct_id", "y", "start_year"]], on="nct_id")
+    fields = {"title": "brief_title", "summary": "brief_summary", "criteria": "eligibility_criteria"}
+    hit = {name: raw[col].map(lambda t: any(states_stopping(s) for s in split_sentences(t or "")))
+           for name, col in fields.items()}
+    whole = raw[["brief_title", "conditions_text", "brief_summary", "eligibility_criteria"]].fillna("").agg(
+        " \n ".join, axis=1)
+    broad = whole.map(lambda t: any(BROAD_RULE.search(s) for s in split_sentences(t)))
+
+    def share(mask: pd.Series) -> dict:
+        g = mask.groupby(raw.y).mean()
+        return {"terminated_5y": round(float(g.get(1, 0)), 4), "not_terminated": round(float(g.get(0, 0)), 4)}
+
+    summary = {
+        "cohort": "primary cohort, start years 2008-2020",
+        "n_trials": int(len(raw)),
+        "current_rule_title_or_summary": share(hit["title"] | hit["summary"]),
+        "current_rule_if_applied_to_criteria": share(hit["criteria"]),
+        "earlier_broad_rule_all_text": share(broad),
+    }
+    rows = [(r.nct_id, field, int(r.y), s) for field, col in (("title", "brief_title"), ("summary", "brief_summary"))
+            for r in raw[hit[field]].itertuples() for s in split_sentences(getattr(r, col) or "")
+            if states_stopping(s)]
+    sample = pd.DataFrame(rows, columns=["nct_id", "field", "terminated_5y", "masked_sentence"])
+    sample = sample.sample(min(20, len(sample)), random_state=seed).sort_values("nct_id")
+    return summary, sample
+
+
+def ablation(df: pd.DataFrame, year_set: str) -> dict:
+    train, valid, ev = part(df, "train"), part(df, "valid"), part(df, year_set)
+    tab = fit_gbm(train, valid, FEATURES).predict_proba(ev[FEATURES])[:, 1]
+    both = fit_combined(df).predict_proba(ev[TEXT_FEATURES])[:, 1]
+    t, b = scores(ev.y, tab), scores(ev.y, both)
+    return {"text_only": scores(ev.y, ev.text_score), "tabular_only": t, "tabular_plus_text": b,
+            "roc_auc_gain": round(b["roc_auc"] - t["roc_auc"], 4)}
 
 
 def main() -> None:
-    scored = add_text_score(load())
-    df = scored.df
-    train, valid, test = (part(df, y) for y in (TRAIN_YEARS, VALID_YEARS, TEST_YEARS))
-    results = {
-        "text_only": scores(test.stopped_early, test.text_score),
-        "tabular_only": scores(test.stopped_early,
-                               fit_gbm(train, valid, HONEST).predict_proba(test[HONEST])[:, 1]),
-    }
-    combined = fit_combined(df)
-    p = combined.predict_proba(test[TEXT_FEATURES])[:, 1]
-    results["tabular_plus_text"] = scores(test.stopped_early, p)
+    base = load()
+    grouped = add_text_score(base)
+    ungrouped = add_text_score(base, grouped=False)
+    summary, sample = masking_report(base)
+    sample.to_csv(ROOT / "reports" / "masked_sentences_sample.csv", index=False)
+    (ROOT / "reports" / "masking_summary.json").write_text(json.dumps(summary, indent=2))
 
-    final = scored.text_model
+    results: dict = {"masking": summary}
+    for name, scored in (("grouped_by_sponsor", grouped), ("ungrouped", ungrouped)):
+        results[name] = {"selection_year_2017": ablation(scored.df, "calib"),
+                         "test_2018_2020": ablation(scored.df, "test")}
+
+    final = grouped.text_model
     vec, clf = final.named_steps["tfidfvectorizer"], final.named_steps["logisticregression"]
     terms = np.array(vec.get_feature_names_out())
     order = np.argsort(clf.coef_[0])
     results["terms_raising_risk"] = terms[order[-25:]][::-1].tolist()
     results["terms_lowering_risk"] = terms[order[:25]].tolist()
 
-    out = test[["nct_id", "stopped_early", "text_score"]].assign(p_combined=p)
-    out.to_parquet(ROOT / "reports" / "test_predictions.parquet")
+    df = grouped.df
+    test = part(df, "test")
+    p = fit_combined(df).predict_proba(test[TEXT_FEATURES])[:, 1]
+    test[["nct_id", "y", "text_score"]].assign(p_combined=p).to_parquet(
+        ROOT / "reports" / "test_predictions.parquet")
     (ROOT / "reports" / "text_metrics.json").write_text(json.dumps(results, indent=2))
     print(json.dumps(results, indent=2))
 
