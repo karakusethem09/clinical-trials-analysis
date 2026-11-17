@@ -6,31 +6,31 @@
     "roc_auc": {
       "estimate": 0.7012,
       "ci95": [
-        0.6932,
-        0.709
+        0.693,
+        0.7093
       ]
     },
     "pr_auc": {
       "estimate": 0.3838,
       "ci95": [
-        0.3709,
-        0.399
+        0.3694,
+        0.3976
       ]
     }
   },
   "tabular_gbm": {
     "roc_auc": {
-      "estimate": 0.7209,
+      "estimate": 0.7212,
       "ci95": [
-        0.7129,
-        0.7285
+        0.7128,
+        0.7289
       ]
     },
     "pr_auc": {
-      "estimate": 0.3998,
+      "estimate": 0.4001,
       "ci95": [
-        0.3851,
-        0.4146
+        0.386,
+        0.4144
       ]
     }
   },
@@ -38,62 +38,62 @@
     "roc_auc": {
       "estimate": 0.7246,
       "ci95": [
-        0.7166,
-        0.7321
+        0.7169,
+        0.7325
       ]
     },
     "pr_auc": {
-      "estimate": 0.4018,
+      "estimate": 0.402,
       "ci95": [
-        0.3881,
-        0.4173
+        0.3869,
+        0.4165
       ]
     }
   },
   "leaky_gbm": {
     "roc_auc": {
-      "estimate": 0.8746,
+      "estimate": 0.8743,
       "ci95": [
-        0.8683,
-        0.8806
+        0.8682,
+        0.8804
       ]
     },
     "pr_auc": {
-      "estimate": 0.7669,
+      "estimate": 0.7662,
       "ci95": [
-        0.7569,
-        0.7767
+        0.7556,
+        0.7764
       ]
     }
   },
   "difference_tabular_plus_text_gbm_minus_tabular_gbm": {
     "roc_auc": {
-      "estimate": 0.0037,
+      "estimate": 0.0034,
       "ci95": [
-        -0.001,
-        0.0077
+        -0.0013,
+        0.0083
       ]
     },
     "pr_auc": {
-      "estimate": 0.002,
+      "estimate": 0.0019,
       "ci95": [
-        -0.0047,
-        0.009
+        -0.0052,
+        0.0094
       ]
     }
   },
   "calibration": {
     "raw": {
-      "brier": 0.1461,
-      "ece": 0.0297,
-      "mean_predicted": 0.1747,
+      "brier": 0.1462,
+      "ece": 0.0306,
+      "mean_predicted": 0.1738,
       "roc_auc": 0.7246
     },
     "isotonic": {
-      "brier": 0.1458,
-      "ece": 0.0198,
-      "mean_predicted": 0.1846,
-      "roc_auc": 0.7239
+      "brier": 0.1457,
+      "ece": 0.0214,
+      "mean_predicted": 0.1837,
+      "roc_auc": 0.7243
     },
     "observed_rate": 0.2044
   }
