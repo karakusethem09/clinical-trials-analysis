@@ -1,0 +1,7 @@
+trial_termination:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: ../data/trials.duckdb
+      threads: 4

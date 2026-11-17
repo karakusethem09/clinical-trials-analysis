@@ -1,0 +1,9 @@
+name: trial_termination
+version: "1.0"
+profile: trial_termination
+model-paths: ["models"]
+vars:
+  raw_glob: "../data/raw/studies_*.jsonl.gz"
+models:
+  trial_termination:
+    +materialized: table

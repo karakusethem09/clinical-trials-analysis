@@ -1,0 +1,20 @@
+version: 2
+models:
+  - name: trial_cohort
+    description: Interventional trials started 2008 or later, with outcome and registration-time features.
+    columns:
+      - name: nct_id
+        tests: [unique, not_null]
+      - name: start_date
+        tests: [not_null]
+      - name: stopped_early
+        description: 1 = terminated or withdrawn, 0 = completed, null = not resolved yet.
+        tests:
+          - accepted_values:
+              arguments:
+                values: [0, 1]
+  - name: sponsor_history
+    description: Sponsor track record as of each trial's start date (no look-ahead).
+    columns:
+      - name: nct_id
+        tests: [unique, not_null]
