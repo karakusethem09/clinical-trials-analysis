@@ -47,6 +47,7 @@ def load() -> pd.DataFrame:
         select {cols}
         from trial_cohort join sponsor_history using (nct_id)
         where is_resolved and registered_prospectively and start_year between {TRAIN_YEARS[0]} and {TEST_YEARS[1]}
+        order by nct_id  -- fixed row order: DuckDB's is not, and bagging depends on it
     """).df()
     for c in CATEGORICAL:
         df[c] = df[c].astype("category")

@@ -76,6 +76,7 @@ def load() -> tuple[pd.DataFrame, pd.Timestamp]:
         from trial_cohort c join sponsor_history s using (nct_id)
         where registered_prospectively
           and overall_status not in ('WITHDRAWN', 'NOT_YET_RECRUITING')
+        order by nct_id
     """).df()
     for c in ("start_date", "end_date", "last_update_date"):
         df[c] = pd.to_datetime(df[c])
