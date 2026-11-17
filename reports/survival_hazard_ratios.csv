@@ -1,0 +1,40 @@
+feature,coef,hazard_ratio,hr_lower_95,hr_upper_95,p
+sponsor_prior_stop_rate,0.7896,2.2026,2.0477,2.3692,0.0
+sponsor_group_Industry,0.4566,1.5787,1.5283,1.6308,0.0
+sponsor_group_Individual / unknown,0.4131,1.5116,1.0032,2.2776,0.0483
+phase_group_Phase 1,0.2818,1.3255,1.2608,1.3936,0.0
+intervention_drug,0.2412,1.2727,1.2231,1.3244,0.0
+purpose_DIAGNOSTIC,0.2159,1.241,1.1583,1.3295,0.0
+phase_group_Phase 2,0.2117,1.2358,1.1798,1.2946,0.0
+purpose_SUPPORTIVE_CARE,0.2047,1.2271,1.1434,1.317,0.0
+phase_group_Phase 4,0.1924,1.2121,1.1435,1.2848,0.0
+masking_TRIPLE,0.1792,1.1963,1.1306,1.2658,0.0
+intervention_device,0.1719,1.1876,1.1355,1.2421,0.0
+phase_group_Phase 1/2,0.1519,1.1641,1.0918,1.2411,0.0
+phase_group_Phase 2/3,0.1489,1.1606,1.05,1.2828,0.0036
+masking_DOUBLE,0.1167,1.1238,1.0709,1.1794,0.0
+registered_months_before_start,0.0987,1.1037,1.0579,1.1516,0.0
+purpose_BASIC_SCIENCE,0.0832,1.0867,1.0083,1.1713,0.0296
+masking_QUADRUPLE,0.0815,1.0849,1.0341,1.1382,0.0009
+purpose_OTHER,0.0643,1.0664,1.0105,1.1254,0.0192
+has_industry_collaborator,0.0299,1.0304,0.9911,1.0711,0.1311
+intervention_biological,-0.002,0.998,0.9481,1.0506,0.94
+log_sponsor_prior_trials,-0.0212,0.979,0.9712,0.9869,0.0
+allocation_MISSING,-0.0222,0.978,0.9428,1.0146,0.2349
+n_conditions,-0.0247,0.9756,0.9671,0.9843,0.0
+allocation_NON_RANDOMIZED,-0.0248,0.9755,0.9313,1.0217,0.293
+sponsor_prior_stop_rate_missing,-0.027,0.9733,0.931,1.0175,0.2329
+log_criteria_chars,-0.0586,0.9431,0.9276,0.9588,0.0
+intervention_procedure,-0.0648,0.9373,0.8908,0.9862,0.0125
+purpose_PREVENTION,-0.0738,0.9288,0.8789,0.9816,0.0088
+healthy_volunteers,-0.0757,0.9271,0.8892,0.9665,0.0004
+masking_SINGLE,-0.0889,0.9149,0.8689,0.9633,0.0007
+phase_group_Phase 3,-0.2023,0.8169,0.7732,0.863,0.0
+masking_MISSING,-0.2137,0.8076,0.5627,1.1589,0.2461
+sponsor_group_US federal,-0.2407,0.786,0.6778,0.9116,0.0015
+intervention_radiation,-0.2601,0.771,0.709,0.8383,0.0
+sponsor_group_NIH,-0.2755,0.7592,0.6824,0.8447,0.0
+sponsor_group_Network,-0.3181,0.7275,0.6185,0.8558,0.0001
+intervention_behavioral,-0.3301,0.7189,0.6782,0.762,0.0
+has_nih_collaborator,-0.4155,0.66,0.6232,0.6991,0.0
+sponsor_group_Other government,-0.4221,0.6557,0.5729,0.7505,0.0

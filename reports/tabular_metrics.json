@@ -1,0 +1,91 @@
+{
+  "n": {
+    "train": 54652,
+    "valid": 21108,
+    "test": 23498
+  },
+  "logistic_regression": {
+    "roc_auc": 0.7012,
+    "pr_auc": 0.3838,
+    "brier": 0.1494,
+    "base_rate": 0.2044
+  },
+  "gradient_boosting": {
+    "roc_auc": 0.7203,
+    "pr_auc": 0.3988,
+    "brier": 0.1463,
+    "base_rate": 0.2044
+  },
+  "gradient_boosting_with_leaky_fields": {
+    "roc_auc": 0.8736,
+    "pr_auc": 0.7653,
+    "brier": 0.0897,
+    "base_rate": 0.2044
+  },
+  "calibration_deciles": [
+    {
+      "predicted": 0.0429,
+      "observed": 0.0511,
+      "n": 2350
+    },
+    {
+      "predicted": 0.0657,
+      "observed": 0.0711,
+      "n": 2350
+    },
+    {
+      "predicted": 0.0854,
+      "observed": 0.0881,
+      "n": 2350
+    },
+    {
+      "predicted": 0.1069,
+      "observed": 0.1252,
+      "n": 2349
+    },
+    {
+      "predicted": 0.1328,
+      "observed": 0.1626,
+      "n": 2350
+    },
+    {
+      "predicted": 0.1657,
+      "observed": 0.1974,
+      "n": 2350
+    },
+    {
+      "predicted": 0.2036,
+      "observed": 0.2465,
+      "n": 2349
+    },
+    {
+      "predicted": 0.2473,
+      "observed": 0.2979,
+      "n": 2350
+    },
+    {
+      "predicted": 0.3048,
+      "observed": 0.3409,
+      "n": 2350
+    },
+    {
+      "predicted": 0.4471,
+      "observed": 0.4638,
+      "n": 2350
+    }
+  ],
+  "top_features_by_gain": {
+    "days_registered_after_start": 0.1592,
+    "sponsor_prior_stop_rate": 0.1208,
+    "healthy_volunteers": 0.0786,
+    "criteria_chars": 0.0753,
+    "max_age_years": 0.0637,
+    "sponsor_prior_started": 0.061,
+    "criteria_bullets": 0.0484,
+    "sponsor_prior_ended": 0.0478,
+    "min_age_years": 0.0359,
+    "phase": 0.0341,
+    "intervention_behavioral": 0.0336,
+    "start_year": 0.0296
+  }
+}

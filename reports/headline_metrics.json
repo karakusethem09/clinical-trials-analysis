@@ -1,0 +1,100 @@
+{
+  "n_test": 23498,
+  "base_rate_test": 0.2044,
+  "bootstrap_resamples": 1000,
+  "logistic_regression": {
+    "roc_auc": {
+      "estimate": 0.7012,
+      "ci95": [
+        0.6932,
+        0.709
+      ]
+    },
+    "pr_auc": {
+      "estimate": 0.3838,
+      "ci95": [
+        0.3709,
+        0.399
+      ]
+    }
+  },
+  "tabular_gbm": {
+    "roc_auc": {
+      "estimate": 0.7209,
+      "ci95": [
+        0.7129,
+        0.7285
+      ]
+    },
+    "pr_auc": {
+      "estimate": 0.3998,
+      "ci95": [
+        0.3851,
+        0.4146
+      ]
+    }
+  },
+  "tabular_plus_text_gbm": {
+    "roc_auc": {
+      "estimate": 0.7246,
+      "ci95": [
+        0.7166,
+        0.7321
+      ]
+    },
+    "pr_auc": {
+      "estimate": 0.4018,
+      "ci95": [
+        0.3881,
+        0.4173
+      ]
+    }
+  },
+  "leaky_gbm": {
+    "roc_auc": {
+      "estimate": 0.8746,
+      "ci95": [
+        0.8683,
+        0.8806
+      ]
+    },
+    "pr_auc": {
+      "estimate": 0.7669,
+      "ci95": [
+        0.7569,
+        0.7767
+      ]
+    }
+  },
+  "difference_tabular_plus_text_gbm_minus_tabular_gbm": {
+    "roc_auc": {
+      "estimate": 0.0037,
+      "ci95": [
+        -0.001,
+        0.0077
+      ]
+    },
+    "pr_auc": {
+      "estimate": 0.002,
+      "ci95": [
+        -0.0047,
+        0.009
+      ]
+    }
+  },
+  "calibration": {
+    "raw": {
+      "brier": 0.1461,
+      "ece": 0.0297,
+      "mean_predicted": 0.1747,
+      "roc_auc": 0.7246
+    },
+    "isotonic": {
+      "brier": 0.1458,
+      "ece": 0.0198,
+      "mean_predicted": 0.1846,
+      "roc_auc": 0.7239
+    },
+    "observed_rate": 0.2044
+  }
+}
