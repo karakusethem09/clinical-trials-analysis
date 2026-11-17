@@ -6,14 +6,14 @@
     "base_rate": 0.2044
   },
   "tabular_only": {
-    "roc_auc": 0.7203,
-    "pr_auc": 0.3988,
+    "roc_auc": 0.7212,
+    "pr_auc": 0.4001,
     "brier": 0.1463,
     "base_rate": 0.2044
   },
   "tabular_plus_text": {
-    "roc_auc": 0.7248,
-    "pr_auc": 0.4006,
+    "roc_auc": 0.7246,
+    "pr_auc": 0.402,
     "brier": 0.1462,
     "base_rate": 0.2044
   },
