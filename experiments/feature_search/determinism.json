@@ -1,0 +1,16 @@
+{
+  "config": "main",
+  "valid_year": 2015,
+  "n_trees_rerun": 81,
+  "max_abs_prediction_difference": {
+    "A": 0.0,
+    "B": 0.0,
+    "C": 0.0,
+    "D": 0.0,
+    "E": 0.0,
+    "F": 0.0,
+    "G": 0.0,
+    "H": 0.0
+  },
+  "identical": true
+}

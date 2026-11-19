@@ -49,7 +49,7 @@ def build(nct_ids: list[str]) -> pd.DataFrame:
         select s.nct_id, s.first_submit_date anchor, s.lead_sponsor_key sp,
                s.location_countries ctry, {conds} conds
         from stg_studies s join focal_ids using (nct_id)""")
-    assert con.sql("select count(*) from focal").fetchone()[0] == len(nct_ids)
+    assert con.sql("select count(*) from focal").fetchall()[0][0] == len(nct_ids)
     con.sql("create temp table pc as select nct_id, sp, post, ctry, unnest(conds) cond from pool")
     con.sql("create temp table fc as select nct_id, anchor, sp, ctry, unnest(conds) cond from focal")
     # every (focal, competitor, shared condition) within 60 months before the anchor

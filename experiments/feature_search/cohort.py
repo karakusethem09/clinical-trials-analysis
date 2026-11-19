@@ -39,6 +39,7 @@ FORBIDDEN_YEARS = (2018, 2019, 2020)
 def connect() -> duckdb.DuckDBPyConnection:
     con = duckdb.connect(str(DB), read_only=True)
     con.sql("set threads = 4")
+    con.sql("set enable_progress_bar = false")
     return con
 
 
