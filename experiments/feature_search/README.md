@@ -178,3 +178,24 @@ the 5-year horizon 0-10 months before the pull, so terminations not yet reported
 as not terminated (15% of 2020 starts were still running at the pull). `confirm.py`
 defines `confirm(arm)` (train on 2008-2015, same tree-count CV, 5 seeds, score once); it has
 not been called.
+
+## Confirmation on 2021 starts (run once)
+
+Arm F (text score) was the only single feature that passed the selection rule, so it was
+the arm taken to the untouched 2021 cohort. `confirm("F")` was called once; no other arm
+has been scored on 2021 starts.
+
+Training: starts 2008-2015 (62,867 trials, 125 trees). Confirmation cohort: 12,944 trials
+started 2021-01-01 to 2021-11-13, 1,408 terminated within five years.
+
+| Arm | ROC AUC | Delta (95% CI, paired, sponsor-clustered) | PR AUC | Phase 2 ROC AUC | Phase 2 delta (95% CI) |
+|---|---|---|---|---|---|
+| A baseline | 0.6977 | | 0.1924 | 0.5746 | |
+| F text | 0.6971 | -0.0006 (-0.0098, +0.0080) | 0.1937 | 0.5844 | +0.0098 (-0.0243, +0.0415) |
+
+The gain seen on 2015-2017 (+0.0078) did not repeat. The interval still allows a gain of up
+to about +0.008, so the result is "not confirmed", not "shown to be zero". No feature tested
+here is supported strongly enough to change the headline model.
+
+Caveat: these trials reached their five-year horizon 0-10 months before the data pull, so
+terminations not yet reported count as not terminated.
